@@ -8,6 +8,7 @@
          irc-join-channel
          irc-part-channel
          irc-connect
+         irc-set-password
          irc-set-nick
          irc-set-user-info
          irc-quit
@@ -84,6 +85,9 @@
      (irc-send-command connection "PONG" (string-append ":" (first params)))]
     [_ (void)]))
 
+(define (irc-set-password connection password)
+  (irc-send-command connection "PASS" password))
+
 (define (irc-set-nick connection nick)
   (irc-send-command connection "NICK" nick))
 
@@ -98,10 +102,12 @@
 
 ;; Connects to an IRC server, returning the connection and an event that will be ready for
 ;; synchronization when the server is ready for more commands
-(define (irc-connect server port nick username real-name #:return-eof [return-eof #f] #:ssl [ssl #f])
+(define (irc-connect server port nick username real-name #:password [password #f] #:return-eof [return-eof #f] #:ssl [ssl #f])
   (define connection (irc-get-connection server port #:return-eof return-eof #:ssl ssl))
   (define sema (make-semaphore))
   (add-handler connection (listen-for-connect sema))
+  (when password
+    (irc-set-password connection password))
   (irc-set-nick connection nick)
   (irc-set-user-info connection username real-name)
   (values connection sema))

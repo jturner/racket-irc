@@ -58,6 +58,7 @@ Once you have joined, you can send a message on that channel with the following:
                       [nick string?]
                       [username string?]
                       [real-name string?]
+                      [#:password password (or/c string? #f)]
                       [#:return-eof return-eof boolean? #f]
                       [#:ssl ssl (or/c ssl-client-context? 'auto 'sslv2-or-v3 'sslv2 'sslv3 'tls 'tls11 'tls12 boolean?) #f])
           (values irc-connection? evt?)]{
@@ -65,10 +66,11 @@ Once you have joined, you can send a message on that channel with the following:
   Connects to @racket[server] on @racket[port] using @racket[nick] as the IRC nickname,
   @racket[username] as the username, and @racket[real-name] as the user's real name. Returns a
   connection object and an event that will be ready for synchronization when the server is ready to
-  accept more commands. If @racket[return-eof] is @racket[#t], the incoming stream will include an
-  end-of-file whenever the underlying TCP stream receives one (e.g. if the connection fails).
-  If @racket[ssl] is not @racket[#f] the connection will be made over SSL/TLS with the appropriate
-  SSL/TLS mode or client context.}
+  accept more commands. If @racket[password] is not @racket[#f] it will be sent to the server
+  to log you in before any other commands. If @racket[return-eof] is @racket[#t], the incoming
+  stream will include an end-of-file whenever the underlying TCP stream receives one (e.g. if the
+  connection fails). If @racket[ssl] is not @racket[#f] the connection will be made over SSL/TLS
+  with the appropriate SSL/TLS mode or client context.}
 
 @defproc[(irc-connection-incoming [connection irc-connection?])
          async-channel?]{
@@ -118,8 +120,15 @@ Once you have joined, you can send a message on that channel with the following:
   server closes the connection. If @racket[ssl] is not @racket[#f] the connection will be made over
   SSL/TLS with the appropriate SSL/TLS mode or client context.
 
-  Use this form instead of @racket[irc-connect] when you want more control over when to send the NICK
-  and USER commands.}
+  Use this form instead of @racket[irc-connect] when you want more control over when to send the PASS,
+  NICK and USER commands.}
+
+@defproc[(irc-set-password [connection irc-connection?]
+                           [password string?])
+         void?]{
+
+  Sets the password for this connection to @racket[password]. Note that @racket[irc-connect] runs this
+  command for you when the connection is first established.}
 
 @defproc[(irc-set-nick [connection irc-connection?]
                        [nick string?])
@@ -134,7 +143,7 @@ Once you have joined, you can send a message on that channel with the following:
          void?]{
 
   Sets the user name and real name for this connection to @racket[username] and @racket[real-name],
-  respectively . Note that @racket[irc-connect] runs this command for you when the connection is first
+  respectively. Note that @racket[irc-connect] runs this command for you when the connection is first
   established.}
 
 @defproc[(irc-quit [connection irc-connection?]
